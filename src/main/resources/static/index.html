@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+</head>
+<body>
+<div id="app">
+    <h1>Strategies</h1>
+    <ul>
+        <li v-for="strategy in strategiesList" v-on:click="setCurrentStrategy(strategy.value)">
+            {{ strategy.description }}
+        </li>
+    </ul>
+    <div v-if="currentStrategy">
+        <h2>Properties of Strategy {{ currentStrategy.value }}</h2>
+        <div v-if="currentStrategy.properties">
+            {{ currentStrategy.properties.strategyId }}
+            <br/>
+           last execution: {{ currentStrategy.properties.lastExecution }}
+            <br/>
+           status: {{ currentStrategy.properties.status }}
+        </div>
+    </div>
+</div>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            strategiesList: [{value: 'delta', description: 'Дельта'}, {value: 'arbitrage', description: 'Арбитраж'}],
+            currentStrategy: null
+        },
+        methods: {
+            setCurrentStrategy: function (id) {
+                console.log(this.currentStrategy);
+                let cur = this.strategiesList.filter(strategy => strategy.value === id);
+                console.log("id = " + id);
+
+                this.currentStrategy = cur[0];
+                this.getStrategyProperties(id);
+
+            },
+            getStrategyProperties: function (id) {
+                this.httpGet('strategy/' + id, (response) => {
+                    console.log(response);
+                this.currentStrategy.properties = JSON.parse(response);
+            });
+            },
+            httpGet: function (url, callback) {
+                var xhr = new XMLHttpRequest();
+
+                // 2. Конфигурируем его: GET-запрос на URL 'phones.json'
+                xhr.open('GET', url, true);
+                // 3. Отсылаем запрос
+                xhr.send();
+
+                // 4. Если код ответа сервера не 200, то это ошибка
+                xhr.onreadystatechange = function() { // (3)
+                    if (xhr.readyState != 4) return;
+                    if (xhr.status != 200) {
+                        console.error("request error")
+                    } else {
+                        callback(xhr.response);
+                    }
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>
